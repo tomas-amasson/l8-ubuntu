@@ -5,8 +5,7 @@ module riscvmulti (
     input  [31:0] readdata,
     output [31:0] address,
     output we,
-    output [31:0] writedata,
-    
+    output [31:0] writedata
 );
 
 assign address = (state == FETCH_INSTR || state == WAIT_INSTR) ? pc: (state == LOAD || state == WAIT_DATA || state == STORE) ? read_adr: 32'b0;
@@ -179,7 +178,6 @@ always @(*) begin
         3'b010: ULAresult = ULAb;
         endcase
     end
-    Registers[0] <= 0;
 end 
 
 

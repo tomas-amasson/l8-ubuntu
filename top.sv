@@ -8,18 +8,20 @@ module top(
   wire memwrite, clk, reset;
   wire [31:0] pc, instr;
   wire [31:0] writedata, addr, readdata;
-  integer counter;  
+  integer counter = 0;  
   always @(posedge CLOCK_50) 
       counter <= counter + 1;
   assign clk = counter[21]; // 50MHz / 2^22 = 11.9 Hz
   assign reset = ~KEY[0]; // active low
-    
+  
+  wire [31:0] MEM_readdata; 
+  wire [31:0] IO_readdata;
     
   // microprocessor
   riscvmulti cpu(clk, reset, readdata, addr, memwrite, writedata);
 
   // memory 
-  mem memory(clk, memwrite, addr, writedata, readdata);
+  mem memory(clk, memwrite, addr, writedata & isRAM, MEM_readdata);
 
   // memory-mapped i/o
   wire isIO  = addr[8]; // 0x0000_0100
@@ -42,8 +44,8 @@ module top(
       if (addr[IO_HEX_bit])
         hex_digits <= writedata;
   end
-  assign IO_readdata = addr[IO_KEY_bit] ? {32'b0, KEY} :
-                       addr[ IO_SW_bit] ? {32'b0,  SW} : 
+  assign IO_readdata = addr[IO_KEY_bit] ? {28'b0, KEY} :
+                       addr[ IO_SW_bit] ? {22'b0,  SW} : 
                                            32'b0       ;
   assign readdata = isIO ? IO_readdata : MEM_readdata; 
 endmodule
